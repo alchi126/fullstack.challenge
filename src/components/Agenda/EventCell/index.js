@@ -26,14 +26,15 @@ const formatWhen = (dt: DateTime) => (
 type tProps = {
   calendar: Calendar,
   event: Event,
+  handleClick: Function,
 }
 
-export default observer(({ calendar, event }: tProps) => {
+export default observer(({ calendar, event, handleClick }: tProps) => {
   const cardBgColor = Color(calendar.color).alpha(0.1).string()
   const titleColor = Color(calendar.color).alpha(0.8).mix(Color('#000'), 0.4).string()
 
   return (
-    <div className={style.outer}>
+    <div className={style.outer} onClick={() => handleClick(calendar)}>
       <div className={style.when}>
         {formatWhen(event.date)}
       </div>

@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react'
 import { DateTime } from 'luxon'
-import { computed } from 'mobx'
+import { computed, action } from 'mobx'
 import { observer, inject } from 'mobx-react'
 
 import greeting from 'lib/greeting'
@@ -13,6 +13,7 @@ import List from './List'
 import EventCell from './EventCell'
 
 import style from './style'
+import { filter } from 'minimatch';
 
 /**
  * Agenda component
@@ -32,13 +33,22 @@ class Agenda extends Component<tProps> {
    * Returned objects contain both Event and corresponding Calendar
    */
   @computed
-  get events (): Array<{ calendar: Calendar, event: Event }> {
+  get events(): Array<{ calendar: Calendar, event: Event }> {
+    const id = this.props.account.filterId
     const events = this.props.account.calendars
-      .map((calendar) => (
-        calendar.events.map((event) => (
+      .filter(calendar => {
+        if (id === 'all') {
+          return true
+        }
+        else {
+          return calendar.id === id
+        }
+      })
+      .map(calendar => {
+        return calendar.events.map((event) => (
           { calendar, event }
         ))
-      ))
+      })
       .flat()
 
     // Sort events by date-time, ascending
@@ -47,7 +57,21 @@ class Agenda extends Component<tProps> {
     return events
   }
 
-  render () {
+  @computed
+  get filterOptions(): Array<string> {
+    const id = this.props.account.calendars
+      .map((calendar) => (
+        calendar.id
+      ))
+    return id
+  }
+
+  @action.bound
+  filter(e) {
+    this.props.account.filterId = (e.target) ? e.target.value : e.id
+  }
+
+  render() {
     return (
       <div className={style.outer}>
         <div className={style.container}>
@@ -56,11 +80,20 @@ class Agenda extends Component<tProps> {
             <span className={style.title}>
               {greeting(DateTime.local().hour)}
             </span>
+            <div className={style.menu}>
+              <select value={this.props.account.filterId} onChange={this.filter}>
+                <option value='all'>all</option>
+                {this.filterOptions.map(id => (
+                  <option value={id}>{id}</option>
+                ),
+                )}
+              </select>
+            </div>
           </div>
 
           <List>
             {this.events.map(({ calendar, event }) => (
-              <EventCell key={event.id} calendar={calendar} event={event} />
+              <EventCell key={event.id} calendar={calendar} event={event} handleClick={this.filter} />
             ))}
           </List>
 
