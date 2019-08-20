@@ -68,7 +68,13 @@ class Agenda extends Component<tProps> {
 
   @action.bound
   filter(e) {
-    this.props.account.filterId = (e.target) ? e.target.value : e.id
+    // if event id is anything but 'all' and is strictly equals to current filteredId, indicates that user is on a filtered view and clicked again -- return to 'all' view
+    if (e.id === this.props.account.filterId && this.props.account.filterId !== 'all') {
+      this.props.account.filterId = 'all';
+    } else {
+      // if e.target is not undefined, indicates that user has clicked. Otherwise, user is using the dropdown
+      this.props.account.filterId = (e.target) ? e.target.value : e.id
+    }
   }
 
   render() {
