@@ -1,12 +1,8 @@
 // @flow
 
 import React, { Component } from 'react'
-import { DateTime } from 'luxon'
 import { computed, action, observable } from 'mobx'
 import { observer, inject } from 'mobx-react'
-
-import greeting from 'lib/greeting'
-
 import type Account from 'src/models/Account'
 
 import List from './List'
@@ -22,10 +18,12 @@ import { filter } from 'minimatch';
  */
 
 type tProps = {
-  account: Account
+  account: Account,
+  greeting: string
 }
 
 @inject('account')
+@inject('greeting')
 @observer
 class Agenda extends Component<tProps> {
   /**
@@ -55,7 +53,6 @@ class Agenda extends Component<tProps> {
 
     // Sort events by date-time, ascending
     events.sort((a, b) => (a.event.date.diff(b.event.date).valueOf()))
-
     return events
   }
   /**
@@ -83,7 +80,6 @@ class Agenda extends Component<tProps> {
     // create a map of all departments and corresponding events
     const departmentMap = events.reduce((acc, eventObj) => {
       const departmentName = (!eventObj.event.department) ? 'Unnamed' : eventObj.event.department
-
       if (acc.hasOwnProperty(departmentName)) {
         acc[departmentName].events.push(eventObj)
       }
@@ -149,10 +145,9 @@ class Agenda extends Component<tProps> {
     return (
       <div className={style.outer}>
         <div className={style.container}>
-
           <div className={style.header}>
             <span className={style.title}>
-              {greeting(DateTime.local().hour)}
+              {this.props.greeting.name}
             </span>
             <div className={style.menu}>
               <select className={style.filterDropdown} value={this.props.account.filterId} onChange={this.filter}>
@@ -170,12 +165,10 @@ class Agenda extends Component<tProps> {
               ? this.eventsByDepartment.map(department => (
                 <div key={department.name} className={style.departmentSection}>
                   <h2 className={style.departmentTitle}>{department.name}</h2>
-                  <List>
-                    {department.events.map(({ calendar, event }) => (
-                      <EventCell key={event.id} calendar={calendar} event={event} handleClick={this.filter} />
-                    ))
-                    }
-                  </List>
+                  {department.events.map(({ calendar, event }) => (
+                    <EventCell key={event.id} calendar={calendar} event={event} handleClick={this.filter} />
+                  ))
+                  }
                   <hr />
                 </div>
               ))
